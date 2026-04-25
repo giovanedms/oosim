@@ -72,6 +72,9 @@ def qp_terminal_target(initial_state: np.ndarray,
                        enforce_vbar_corridor: bool = False,
                        vbar_slope_y: float = 0.10, vbar_intercept_y: float = 5.0,
                        vbar_slope_z: float = 0.05, vbar_intercept_z: float = 3.0,
+                       terminal_mode: str = "hard",
+                       lambda_terminal_pos: float = 100.0,
+                       lambda_terminal_vel: float = 100.0,
                        solver: str = "ECOS") -> QPTargetingResult:
     """Solve QP for berthing-compatible terminal state.
 
@@ -119,19 +122,31 @@ def qp_terminal_target(initial_state: np.ndarray,
             cons.append(cp.abs(x[k, 0]) <= -vbar_slope_y * x[k, 1] + vbar_intercept_y)  # radial vs along-track distance
             cons.append(cp.abs(x[k, 2]) <= -vbar_slope_z * x[k, 1] + vbar_intercept_z)  # cross-track vs along-track
 
-    # Terminal capture envelope: scalar -> sphere, 3-vector -> axis-aligned ellipsoid
-    if np.isscalar(capture_radius):
-        cons.append(cp.norm(x[N, :3] - target_pos, 2) <= float(capture_radius))
-    else:
-        semi = np.asarray(capture_radius, dtype=float)
-        # Ellipsoid: ((r - r*) / semi)^T ((r - r*) / semi) <= 1
-        cons.append(cp.norm(cp.multiply(1.0 / semi, x[N, :3] - target_pos), 2) <= 1.0)
+    # Terminal capture envelope handling — two modes:
+    #   "hard" (default, original): enforce as hard constraint; rejects infeasible
+    #   "soft": move envelope into objective via large quadratic penalty; the
+    #           QP returns a best-effort approach trajectory even when the
+    #           terminal envelope cannot be reached exactly. This is the right
+    #           formulation for receding-horizon MPC where each iteration
+    #           replans toward the same envelope but only applies the first
+    #           impulse — hard constraints cause sub-optimization here.
+    if terminal_mode == "hard":
+        if np.isscalar(capture_radius):
+            cons.append(cp.norm(x[N, :3] - target_pos, 2) <= float(capture_radius))
+        else:
+            semi = np.asarray(capture_radius, dtype=float)
+            cons.append(cp.norm(cp.multiply(1.0 / semi, x[N, :3] - target_pos), 2) <= 1.0)
+        cons.append(cp.norm(x[N, 3:], 2) <= v_max_terminal)
+    elif terminal_mode != "soft":
+        raise ValueError(f"terminal_mode must be 'hard' or 'soft', got {terminal_mode!r}")
 
-    # Terminal velocity bound
-    cons.append(cp.norm(x[N, 3:], 2) <= v_max_terminal)
-
-    # Cost
+    # Cost: always-present propellant + position-tracking; soft-mode adds
+    # heavy terminal penalties to drive the chaser to the envelope center.
     cost = cp.sum_squares(u) + lambda_pos * cp.sum_squares(x[N, :3] - target_pos)
+    if terminal_mode == "soft":
+        cost = (cost
+                + lambda_terminal_pos * cp.sum_squares(x[N, :3] - target_pos)
+                + lambda_terminal_vel * cp.sum_squares(x[N, 3:]))
 
     problem = cp.Problem(cp.Minimize(cost), cons)
     problem.solve(solver=solver)
