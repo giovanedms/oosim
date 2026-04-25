@@ -65,10 +65,13 @@ def qp_terminal_target(initial_state: np.ndarray,
                        n: float,
                        horizon_steps: int = 20,
                        dt: float = 30.0,
-                       capture_radius: float = 0.3,
+                       capture_radius: float | np.ndarray = 0.3,
                        v_max_terminal: float = 0.05,
                        dv_max_per_step: float = 0.5,
                        lambda_pos: float = 1.0,
+                       enforce_vbar_corridor: bool = False,
+                       vbar_slope_y: float = 0.10, vbar_intercept_y: float = 5.0,
+                       vbar_slope_z: float = 0.05, vbar_intercept_z: float = 3.0,
                        solver: str = "ECOS") -> QPTargetingResult:
     """Solve QP for berthing-compatible terminal state.
 
@@ -78,10 +81,15 @@ def qp_terminal_target(initial_state: np.ndarray,
         n: target orbit mean motion [rad/s].
         horizon_steps: number of discrete control steps.
         dt: timestep [s].
-        capture_radius: workspace ellipsoid (sphere here) semi-axis [m].
+        capture_radius: scalar (sphere) or 3-vector (axis-aligned ellipsoid
+            semi-axes) for the workspace constraint at terminal time [m].
         v_max_terminal: max ||v|| at horizon end [m/s].
         dv_max_per_step: max ||Δv|| per impulse [m/s].
         lambda_pos: weight on terminal position error.
+        enforce_vbar_corridor: if True, enforce |y_k| <= sy*|x_k|+by and
+            |z_k| <= sz*|x_k|+bz over the entire horizon (V-bar approach).
+        vbar_slope_y, vbar_intercept_y: V-bar lateral cone parameters.
+        vbar_slope_z, vbar_intercept_z: V-bar vertical cone parameters.
         solver: CVXPY solver name.
 
     Returns:
@@ -97,18 +105,32 @@ def qp_terminal_target(initial_state: np.ndarray,
     x = cp.Variable((N + 1, nx))
     u = cp.Variable((N, nu))  # Δv per step in m/s
 
-    # Convert initial state km to m for consistency (HCW STM is unit-agnostic).
     cons = [x[0] == initial_state]
     for k in range(N):
         cons.append(x[k + 1] == A @ x[k] + B @ u[k])
         cons.append(cp.norm(u[k], 2) <= dv_max_per_step)
+        if enforce_vbar_corridor:
+            # V-bar corridor (one-sided assumption: chaser approaches from behind,
+            # so y_k <= 0 throughout the horizon; |y_k| = -y_k is affine, which
+            # makes the cone constraint DCP-compliant). For bilateral V-bar
+            # excursions the user must run two passes (positive- and
+            # negative-y branches) and pick the better solution.
+            cons.append(x[k, 1] <= 0.0)  # explicit assumption
+            cons.append(cp.abs(x[k, 0]) <= -vbar_slope_y * x[k, 1] + vbar_intercept_y)  # radial vs along-track distance
+            cons.append(cp.abs(x[k, 2]) <= -vbar_slope_z * x[k, 1] + vbar_intercept_z)  # cross-track vs along-track
 
-    # Terminal capture envelope (workspace as sphere of radius capture_radius)
-    cons.append(cp.norm(x[N, :3] - target_pos, 2) <= capture_radius)
+    # Terminal capture envelope: scalar -> sphere, 3-vector -> axis-aligned ellipsoid
+    if np.isscalar(capture_radius):
+        cons.append(cp.norm(x[N, :3] - target_pos, 2) <= float(capture_radius))
+    else:
+        semi = np.asarray(capture_radius, dtype=float)
+        # Ellipsoid: ((r - r*) / semi)^T ((r - r*) / semi) <= 1
+        cons.append(cp.norm(cp.multiply(1.0 / semi, x[N, :3] - target_pos), 2) <= 1.0)
+
     # Terminal velocity bound
     cons.append(cp.norm(x[N, 3:], 2) <= v_max_terminal)
 
-    # Cost: minimize total Δv squared + lambda * terminal pos error squared
+    # Cost
     cost = cp.sum_squares(u) + lambda_pos * cp.sum_squares(x[N, :3] - target_pos)
 
     problem = cp.Problem(cp.Minimize(cost), cons)
