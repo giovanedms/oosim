@@ -20,6 +20,20 @@ def test_inflate_envelope_with_cov_shrinks_admissible_set():
     assert 0.30 < inflated < 0.40
 
 
-def test_qp_chance_constrained_stub_raises():
-    with pytest.raises(NotImplementedError):
-        qp_chance_constrained_target()
+def test_qp_chance_constrained_now_implemented():
+    """qp_chance_constrained_target was a stub raising NotImplementedError;
+    after the F1+++++++++++ implementation it is callable. We just check it's
+    no longer raising NotImplementedError on call."""
+    # API shape — should not raise NotImplementedError
+    import numpy as np
+    from oosim.proxops.hcw import mean_motion
+    n = mean_motion(6378.137 + 408.0)
+    try:
+        qp_chance_constrained_target(
+            initial_state=np.array([0., -100., 0., 0., 0., 0.]),
+            target_pos=np.array([0., 0., 0.]), n=n,
+            horizon_steps=10, dt=15.0,
+            nominal_radius=0.5, risk_level=0.05,
+        )
+    except NotImplementedError:
+        pytest.fail("qp_chance_constrained_target should be implemented now")
