@@ -6,3 +6,4 @@ from .frames_extra import (  # noqa: F401
 )
 from .integrators import integrate_with_impulses  # noqa: F401
 from .lambert import lambert_battin  # noqa: F401
+from .lambert_izzo import lambert_izzo  # noqa: F401

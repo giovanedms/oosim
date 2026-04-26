@@ -4,3 +4,4 @@ from .qp_targeting import qp_terminal_target, QPTargetingResult, HAVE_CVXPY  # n
 from .envelope_specs import CANADARM2_BERTHING, NDS_DOCKING, SSVP_DOCKING  # noqa: F401
 from .polytope_envelope import WorkspacePolytope, CANADARM2_POLYTOPE  # noqa: F401
 from .ukf import UKFState, ukf_predict, ukf_update  # noqa: F401
+from .chance_constrained import ChanceConstraintSpec, inflate_envelope  # noqa: F401
