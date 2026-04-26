@@ -1,5 +1,5 @@
 # OOSim — Final Headline Results Summary
-_Generated 2026-04-26 00:47 UTC_
+_Generated 2026-04-26 04:13 UTC_
 
 Companion summary for the IAC 2026 paper `IAC-26,C2,3,6,x112752` and
 the OOSim release on `github.com/giovanedms/oosim`.
@@ -48,6 +48,9 @@ multiplicity of MPC iterations drives convergence inside.
 | CARGO_DRAGON_CRS21 | 0.48 | 0.00 | n/a | 21 | ✅ |
 | ASTP | 28.48 | 28.00 | 1.71 | 21 | ✅ |
 | STS71_MIR | 0.48 | 0.00 | n/a | 31 | ✅ |
+| SHENZHOU9 | 0.48 | 0.00 | n/a | 26 | ✅ |
+| TIANZHOU1 | 0.48 | 0.00 | n/a | 21 | ✅ |
+| ELSAD | 0.49 | 0.00 | n/a | 27 | ✅ |
 
 ## Soyuz MS-17 end-to-end pipeline result
 
