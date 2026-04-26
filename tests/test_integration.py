@@ -79,14 +79,15 @@ def test_attitude_quaternion_kinematics_unit_norm_preserved():
     assert abs(np.dot(q, qdot)) < 1e-10
 
 
-def test_all_eleven_missions_loaded():
-    """All 11 reference missions accessible via ALL_MISSIONS."""
-    assert len(ALL_MISSIONS) == 11
+def test_all_fourteen_missions_loaded():
+    """All 14 reference missions accessible via ALL_MISSIONS."""
+    assert len(ALL_MISSIONS) == 14
     ids = {m.mission_id for m in ALL_MISSIONS}
     assert ids == {
         "SOYUZ_MS17", "APOLLO11_LM_RDV", "ATV1_JULES_VERNE", "HTV7_KOUNOTORI",
         "CYGNUS_NG21", "MEV1_INTELSAT901", "ETSVII",
         "CREW_DRAGON_DM2", "CARGO_DRAGON_CRS21", "ASTP", "STS71_MIR",
+        "SHENZHOU9", "TIANZHOU1", "ELSAD",
     }
 
 
