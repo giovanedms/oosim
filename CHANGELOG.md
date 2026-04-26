@@ -70,3 +70,38 @@ All notable changes to OOSim documented per commit on the `main` branch.
 ### 329d046 — Initial commit: OOSim framework skeleton
 - Modular architecture: phasing/proxops/attitude/targeting/utils/validation
 - 9 modules + 1 test (Hohmann sanity vs Vallado Ch.6)
+
+## Manuscript polish — UK English + anti-IA + scientific consistency (Apr 26 2026)
+
+Manuscript files (`/dados/GoogleDrive/IAC-TURQUIA/manuscript/sections/*.md`) are versioned outside this git repo (Google Drive sync), but the changes are recorded here for traceability. Three parallel review agents were dispatched:
+
+### Agent 1 — UK English audit
+- 18 substitutions: formalizes→formalises, characterization→characterisation, maximization→maximisation, discretizing→discretising, quantization→quantisation, visualizes→visualises, sub-optimized→sub-optimised, internalize→internalise, amortize→amortise, generalization/generalizes→generalisation/generalises, MIT license (noun)→MIT licence, centerpiece→centrepiece, pioneering programs→pioneering programmes, Acknowledgments→Acknowledgements, catalogs→catalogues
+- Section 4 had duplicate "## 4.5" — second one renumbered to "## 4.6"
+
+### Agent 2 — Anti-IA pattern audit
+- Removed/replaced critical IA-pattern phrases:
+  - ✅ emoji in Section 5 LaTeX table → \checkmark (would have broken pdflatex compile)
+  - "to (the best of) our knowledge" reduced from 4 to 2 occurrences (kept abstract + 1 background)
+  - "headline figure" → neutral phrasing
+  - "is the central methodological contribution" → "shows which architectural choices were decoys"
+  - "Three caveats deserve explicit statement" → "Three caveats follow"
+  - "is itself a methodological observation that we believe is under-discussed" → "is, we think, under-discussed"
+  - "over-engineered continuous-PID assumptions ... absent from real flight systems" softened
+
+### Agent 3 — Scientific consistency audit
+- Cross-reference fixes:
+  - "soft-terminal-cost reformulation introduced in Section 3.3" → "introduced in Section 5.4" (Sections 6 + 7 — was a forward-reference to non-existent content)
+  - "across all v0 runs and across the v2 (UKF + MPC) runs" → "across all v3 runs (and across v0 as a baseline)" — v0/v2 had been failure cases
+  - "16 cores" → "14 cores" (matches actual statistical_sweep_*.csv parallelism level)
+  - "110.70 m/s" → "110.7 m/s" (consistent decimal precision with §5.1 narrative)
+- CANADARM2 case consistency:
+  - Prose mentions of CANADARM2 → Canadarm2 (preserve uppercase only for the CANADARM2_BERTHING preset name)
+  - "below 30 cm (CANADARM2 envelope) or 10 cm (NDS envelope)" → "below 300 mm (Canadarm2 envelope semi-axis) or 100 mm (NDS envelope)"
+  - "300-500 mm CANADARM2 envelope" → "300 mm Canadarm2 envelope semi-axis" (Canadarm2 has 0.5×0.5×0.3 m semi-axes; 300 mm is the most restrictive component)
+
+### Remaining TODO items (require co-author review)
+1. Section 3 has Eq (3.5) labelled twice (inscribed-ellipsoid AND QP objective). Renumbering the QP block to (3.5)–(3.10) is straightforward but conflicts with Sections 5/6 referencing "Constraint (3.6)" etc. — easier to fix at LaTeX template stage.
+2. Section 3 promises Table 3.1 with capture-envelope numerical presets but the table is not inserted. Simple to add (CANADARM2_BERTHING / NDS_DOCKING / SSVP_DOCKING with semi-axes + v_max + omega_max).
+3. Section 4 lists 12 reference missions; Section 5 Table 5.1 has 11 with only 6 overlap. Needs alignment — Section 5's list (which matches the actual hardcoded mission parsers in oosim/missions/) should become master.
+4. Apollo 11 entry in Table 5.1: "LM RDV" with 1770 m/s should be confirmed — the rendezvous-only Δv is closer to 80 m/s; 1770 m/s includes the ascent insertion burn. Either rename to "LM ascent + RDV" or split the value.
