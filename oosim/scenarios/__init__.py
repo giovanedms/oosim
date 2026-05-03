@@ -15,3 +15,5 @@ from .soyuz_ms17 import (  # noqa: F401
 )
 from .atv1 import make_atv1_scenario  # noqa: F401
 from .htv7 import make_htv7_scenario  # noqa: F401
+from .dragon_dm2 import make_dragon_dm2_scenario  # noqa: F401
+from .cygnus_ng21 import make_cygnus_ng21_scenario  # noqa: F401
