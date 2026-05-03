@@ -21,7 +21,7 @@ Frame-conversion notes:
   - ECI dv is converted to body-frame thrust via R_body_to_eci.T evaluated at
     the chaser quaternion at the moment of replan.
 """
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Callable
 import numpy as np
 
