@@ -18,6 +18,7 @@ from oosim.validation.types import (
 )
 from oosim.scenarios.phasing_reconstructor import reconstruct_phasing
 from oosim.scenarios.phasing_drift import compute_phasing_burns
+from oosim.scenarios.corridor_entry import enter_approach_corridor
 from oosim.scenarios.terminal_handoff import (
     TerminalMPCConfig, simulate_terminal_phase,
 )
@@ -38,7 +39,7 @@ _TOLERANCE_BY_TIER = {
 
 
 def run_mission(scenario: MissionScenario) -> MissionRunResult:
-    """Execute the M5 → M8 → M6 pipeline for the scenario."""
+    """Execute the M5 → M8 → M9 → M6 pipeline for the scenario."""
     # M5: Hohmann phasing
     plan = reconstruct_phasing(
         chaser_state_eci=scenario.chaser_initial_eci,
@@ -60,17 +61,29 @@ def run_mission(scenario: MissionScenario) -> MissionRunResult:
         n_phase_orbits=scenario.n_phase_orbits,
         mu=MU_EARTH,
     )
-    chaser_at_terminal = drift.chaser_final_eci
-    target_at_terminal = drift.target_final_eci
+    # M9: HCW two-impulse from M8 output to LVLH approach-corridor entry point
+    corridor = enter_approach_corridor(
+        chaser_state_eci=drift.chaser_final_eci,
+        target_state_eci=drift.target_final_eci,
+        hold_point_lvlh_m=scenario.corridor_entry_lvlh_m,
+        transfer_time_s=scenario.corridor_entry_time_s,
+        thrust_acceleration=scenario.thrust_acceleration,
+        mu=MU_EARTH,
+    )
+    chaser_at_terminal = corridor.chaser_final_eci
+    target_at_terminal = corridor.target_final_eci
     # M6: terminal-phase MPC
     a_t = float(np.linalg.norm(target_at_terminal[:3]))
     n_t = float(np.sqrt(MU_EARTH / a_t**3))
+    # MPC tuning empirically chosen for stability across inclined orbits.
+    # qp_dt=150 h=3 (M7 default) diverges 3+ km on inclined orbits; qp_dt=60 h=5
+    # keeps the QP horizon (300 s) inside the HCW linearisation validity window.
     mpc_cfg = TerminalMPCConfig(
         target_pos_lvlh=scenario.target_pos_lvlh_m,
         target_n=n_t,
-        qp_dt=150.0,
-        qp_horizon_steps=3,
-        qp_dv_max_per_step=0.3,
+        qp_dt=60.0,
+        qp_horizon_steps=5,
+        qp_dv_max_per_step=0.1,
         thrust_acceleration=scenario.thrust_acceleration,
     )
     term = simulate_terminal_phase(
@@ -86,18 +99,22 @@ def run_mission(scenario: MissionScenario) -> MissionRunResult:
     )
     phasing_dv_m_s = plan.total_dv_impulsive * 1000.0
     drift_dv_m_s = sum(b.dv_magnitude_impulsive for b in drift.burns) * 1000.0
+    corridor_dv_m_s = corridor.total_dv_m_s
     terminal_dv_m_s = sum(
         float(np.linalg.norm(e.dv_lvlh_m_s)) for e in term.impulse_log
     )
-    total_dv = phasing_dv_m_s + drift_dv_m_s + terminal_dv_m_s
+    total_dv = phasing_dv_m_s + drift_dv_m_s + corridor_dv_m_s + terminal_dv_m_s
     return MissionRunResult(
         phasing_dv_m_s=phasing_dv_m_s,
         drift_dv_m_s=drift_dv_m_s,
+        corridor_dv_m_s=corridor_dv_m_s,
         terminal_dv_m_s=terminal_dv_m_s,
         total_dv_m_s=total_dv,
         phasing_time_s=plan.transfer_time,
         drift_time_s=drift.drift_time,
-        total_duration_s=plan.transfer_time + drift.drift_time + scenario.t_terminal,
+        corridor_time_s=corridor.transfer_time,
+        total_duration_s=(plan.transfer_time + drift.drift_time
+                          + corridor.transfer_time + scenario.t_terminal),
         terminal_distance_m=term.terminal_distance_m,
         n_terminal_impulses=len([e for e in term.impulse_log if e.duration_s > 0]),
     )

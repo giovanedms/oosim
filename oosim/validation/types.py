@@ -32,19 +32,23 @@ class MissionScenario:
     n_phase_orbits: int = 2
     t_terminal: float = 400.0              # [s]
     target_pos_lvlh_m: np.ndarray = field(default_factory=lambda: np.array([0., -10., 0.]))
+    corridor_entry_lvlh_m: np.ndarray = field(default_factory=lambda: np.array([0., -50., 0.]))
+    corridor_entry_time_s: float = 600.0   # M9 transfer duration
     references: list = field(default_factory=list)  # primary source citations
     notes: str = ""
 
 
 @dataclass
 class MissionRunResult:
-    """Pipeline output (from M5+M8+M6)."""
+    """Pipeline output (from M5+M8+M9+M6)."""
     phasing_dv_m_s: float        # M5 total impulsive
     drift_dv_m_s: float          # M8 sum
+    corridor_dv_m_s: float       # M9 sum
     terminal_dv_m_s: float       # M6 sum
     total_dv_m_s: float
     phasing_time_s: float
     drift_time_s: float
+    corridor_time_s: float
     total_duration_s: float
     terminal_distance_m: float
     n_terminal_impulses: int
