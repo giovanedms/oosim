@@ -118,3 +118,32 @@ F4 writing → F5 review → F6 submit by 14/Sep/2026.
 
 3 parallel Sonnet agents dispatched for F2-real Modules 1, 2 and 4.
 Module 3 (13-dim coupled state) handled by Opus directly.
+
+## F2-real progress — option-c-physics (May 3 2026)
+
+Modules M1–M5 of F2-real complete and merged on `option-c-physics`:
+
+- **M1** ECI propagator (Kepler + J2 secular) — Sonnet, commit `e2755e3`, 5/5 tests.
+- **M2** ECI↔LVLH dynamic transform with omega-coupling — Sonnet, commit
+  `06c1964`, 4/4 tests.
+- **M3** Coupled 13-dim state propagator [r, v, quat, ω] — Opus, commit
+  `13ad39f`, 8/8 tests. Body-frame thrust rotated to ECI via R(q); quaternion
+  normalised inline + on output (DOP853 doesn't enforce constraint).
+- **M4** Finite-burn correction (Vallado Eq. 6-79) — Sonnet, commit `c9645ef`,
+  6/6 tests.
+- **M5** Mission phasing reconstructor (Hohmann + finite-burn) — Sonnet,
+  commit `8ea7696` (+ dead-import cleanup `8996176`), 6/6 tests. First
+  integration layer: chaser+target ECI states in → burn sequence out.
+
+ACT-JUDGE Gemini round 1 on M3 architecture (May 3 2026): quaternion math
+verified correct (q=[0,0,0,1], ω=[0,0,1] → dq=0.5·[0,0,1,0]). Inline
+re-normalisation finding empirically refuted — measured 543 vs 553 DOP853
+steps (noise) and Baumgarte k=1 forces 19× more steps with no accuracy gain.
+J2 in M3 deferred (architectural separation: M3 = terminal-handoff window
+where J2 effect is sub-metre; M1 carries J2 secular for long phasing legs).
+Drag and gravity-gradient torque deferred to A1 (negligible over 3.5 h
+Soyuz timeline; RCS-dominated).
+
+M6 (terminal-phase MPC handoff to coupled state) dispatched to Sonnet.
+M7 (Soyuz MS-17 smoke test) blocks on operator-supplied TLE 2020-10-14
+and Soyuz post-insertion state.
