@@ -7,8 +7,10 @@ by k drift orbits) to bring the chaser within metres of the target.
 
 Algorithm (Vallado, Fundamentals of Astrodynamics, 5th ed., §6.6.1):
 
-    1. measure Δθ_lead = angular separation (signed) between chaser and target
-    2. T_phase = T_target * (1 - Δθ_lead/(2π·k))
+    1. measure Δθ_lead = signed angular separation (positive = chaser ahead)
+    2. T_phase = T_target * (1 + Δθ_lead/(2π·k))
+       chaser behind (Δθ<0) → T_phase < T_target → smaller orbit, faster, catches up
+       chaser ahead (Δθ>0) → T_phase > T_target → larger orbit, slower, lets target catch up
     3. a_phase = (μ·T_phase²/(4π²))^(1/3)
     4. Δv1 = v_phase(r) - v_chaser(r)   tangential at current chaser point
     5. coast k orbits in phasing ellipse
