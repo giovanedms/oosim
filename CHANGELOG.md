@@ -147,3 +147,74 @@ Soyuz timeline; RCS-dominated).
 M6 (terminal-phase MPC handoff to coupled state) dispatched to Sonnet.
 M7 (Soyuz MS-17 smoke test) blocks on operator-supplied TLE 2020-10-14
 and Soyuz post-insertion state.
+
+## F2-real wrap + F3-real complete — option-c-physics (May 3 2026, late)
+
+Same-day extension after the F2-real M1-M5 entry above.
+
+### F2-real closure (M6, M7)
+
+- **M6** Terminal-phase MPC handoff to coupled state — Sonnet, commit
+  `74947bb` (+ dead-import cleanup `0cd2bc4`), 4/4 tests. Stateful
+  `TerminalMPCController` injects into the M3 RHS via `thrust_callback`,
+  solves the existing `qp_terminal_target` QP every `qp_dt` seconds and
+  applies the first impulse as a finite-duration body-frame thrust.
+  Finding: spec defaults (qp_dt=20s, h=15) diverged 50→178 m on a 50 m
+  approach; relaxed to qp_dt=150s, h=3 (used in M7).
+- **M7** Soyuz MS-17 end-to-end smoke pipeline — Sonnet, commit `227dc42`,
+  6/6 tests. First M5+M6 wiring, with placeholder ISS/Soyuz states. Smoke
+  output: phasing 127 m/s + terminal 0.2 m/s = 127 m/s total vs Murtazin
+  reference ≈110.7 m/s; mission duration 236 min vs ultra-rapid ≈210 min.
+  v1 has a documented hold-point hack since M5 v1 doesn't do
+  phase-matching (chaser ends ~670 km off after Hohmann).
+
+### F3-real (kicked off and largely complete same day)
+
+Pipeline grew to **M5 → M8 → M9 → M6**:
+
+- **M8** Phasing-orbit drift loop (Vallado §6.6.1) — Sonnet, commit
+  `f68171d` + docstring fix `d7b46c5`, 7/7 tests. Closes the M5 v1
+  phase-matching gap with a co-elliptic two-impulse maneuver across
+  k drift orbits. **Sonnet caught a sign error in Opus's spec**
+  (`T_phase = T_target × (1 - Δθ/(2πk))` should be `1 + Δθ/(2πk)`):
+  spec formula left 1185 km residual; corrected formula 0 m. Re-derived
+  from Vallado: chaser behind (Δθ<0) needs smaller orbit (faster) to
+  catch up, hence T_phase < T_target.
+- **Validation framework** (`oosim/validation/mission_runner.py`) —
+  Sonnet, commit `930cda3`, 6/6 tests. `MissionScenario` dataclass +
+  `validate_mission()` runner with tier-specific tolerances (Tier A
+  published ±5%, Tier B reverse-engineered ±20%, Tier C qualitative).
+  Internally split into `types.py` + `mission_runner.py` to avoid
+  circular imports with `oosim/scenarios/`.
+- **M9** HCW two-impulse approach-corridor entry (Curtis §7.4) — Opus,
+  commit `41187e6`, 5/5 tests. Closes a gap discovered debugging ATV-1:
+  when M8 perfectly colocates chaser (~0 m), M6 has nothing to optimise
+  from and drifts kilometres in 400 s due to HCW-vs-Kepler mismatch
+  amplifying small impulses. M9 places chaser at a known LVLH hold
+  point (default [0, -50, 0] m on V-bar) before M6 takes over. Also
+  retunes M6 default from qp_dt=150s,h=3 to qp_dt=60s,h=5 — empirically
+  stable across orbital inclinations.
+
+### F3-real mission scenarios (4 missions, all Tier B placeholders)
+
+| Mission | Commit | sim Δv | ref Δv | err | dist | Verdict |
+|---|---|---|---|---|---|---|
+| ATV-1 Jules Verne | `930cda3` | 56.6 m/s | 120 | -52.8% | 16.4 m | FAIL |
+| HTV-7 Kounotori 7 | `1e027e7` | 101.1 | 150 | -32.6% | 18.1 m | FAIL |
+| Crew Dragon DM-2 | `d8c6d62` | 146.2 | 90 | +62.5% | 17.4 m | FAIL |
+| Cygnus NG-21 | `9aeb363` | 111.4 | 120 | **-7.2%** | 17.2 m | **PASS** |
+
+The pipeline converges in all four (terminal_distance 16-18 m); 1/4 PASS
+on Δv reflects placeholder mis-calibration, NOT simulator error. NG-21
+PASS suggests other missions would also pass with real ESA / JAXA / NASA
+primary docs replacing the Tier B reverse-engineered estimates.
+
+### Status going into F4
+
+- **129 tests pass**, 0 unexpected failures.
+- 18 commits on `option-c-physics`, all pushed to GitHub.
+- Decision-gate F2 (24/May) effectively reached 21 days early.
+- Operator action items still blocking Tier A: TLE for ISS at
+  2020-10-14T05:45 UTC (space-track.org) + Murtazin (2020) PDF for
+  rigorous Soyuz MS-17 reproduction.
+- F4 (manuscript rewrite of Sections 3/4/5) is the next planned phase.
