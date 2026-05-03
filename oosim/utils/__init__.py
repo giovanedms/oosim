@@ -1,5 +1,11 @@
 """Utilities: coordinate transforms, time conversions, integrators, Lambert."""
 from .frames import eci_to_lvlh_rotation, relative_state_eci_to_lvlh  # noqa: F401
+from .frames_dynamic import (  # noqa: F401
+    lvlh_angular_velocity_in_eci,
+    eci_state_to_lvlh_relative,
+    lvlh_relative_to_eci_state,
+    track_relative_along_orbit,
+)
 from .frames_extra import (  # noqa: F401
     eci_to_ecef, perifocal_to_eci,
     keplerian_to_cartesian, cartesian_to_keplerian,
