@@ -18,15 +18,13 @@ Limitations of this v1 reconstructor:
   - Phase-matching assumed already satisfied (no phasing-orbit drift loop).
   - Target propagated with same J2 model as chaser.
 """
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
 import numpy as np
 
 from oosim.proxops.eci_propagator import propagate_orbit, MU_EARTH
 from oosim.phasing.hohmann import hohmann_dv, hohmann_time_of_flight
 from oosim.phasing.finite_burn import finite_burn_corrected_dv
 from oosim.utils.frames_dynamic import eci_state_to_lvlh_relative
-from oosim.utils.frames_extra import cartesian_to_keplerian
 
 
 @dataclass
