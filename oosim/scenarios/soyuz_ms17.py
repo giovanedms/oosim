@@ -28,9 +28,11 @@ from oosim.scenarios.phasing_reconstructor import (
 from oosim.scenarios.terminal_handoff import (
     TerminalMPCConfig, TerminalSimResult, simulate_terminal_phase,
 )
+from oosim.scenarios.phasing_drift import (
+    compute_phasing_burns, PhasingDriftPlan,
+)
 from oosim.proxops.coupled_state import MU_EARTH
 from oosim.proxops.eci_propagator import propagate_orbit
-from oosim.utils.frames_dynamic import lvlh_relative_to_eci_state
 
 R_EARTH = 6378.137  # km
 INERTIA_SOYUZ = np.diag([3850.0, 3920.0, 1240.0])  # kg·m²
@@ -40,8 +42,9 @@ INERTIA_SOYUZ = np.diag([3850.0, 3920.0, 1240.0])  # kg·m²
 class SoyuzMS17Result:
     """Full pipeline output."""
     phasing_plan: PhasingPlan
+    phasing_drift_plan: PhasingDriftPlan
     terminal_result: TerminalSimResult
-    total_dv_m_s: float                    # phasing impulsive + terminal sum
+    total_dv_m_s: float                    # phasing impulsive + drift + terminal sum
     total_dv_corrected_m_s: float          # finite-burn corrected total
     terminal_distance_m: float
     n_terminal_impulses: int
@@ -115,27 +118,19 @@ def run_soyuz_ms17_pipeline(
         iss_state, np.array([0.0, plan.transfer_time]),
         mu=MU_EARTH, include_j2=False,
     )[-1]
-    # ── Terminal handoff initial state ──
-    # After phasing the chaser is on the ISS orbit but ~670 km behind in
-    # true anomaly (no phase-matching in M5 v1).  The terminal MPC is
-    # designed for the last ~km of approach, so we initialise it from a
-    # notional V-bar hold point 50 m behind ISS at the handoff epoch.
-    # This is physically representative of where the real profile would hand
-    # off after the phase-matching + far-range station-keeping sequence
-    # (those manoeuvres are not modelled in F2-real M5).
-    # LVLH offset: [0, -50 m, 0] = 50 m behind on V-bar; zero relative velocity
-    # (CW drift-stable hold on the same circular orbit).
-    terminal_offset_lvlh_km = np.array([0.0, -0.05, 0.0])   # km, 50 m behind on V-bar
-    terminal_rel_lvlh_km = np.concatenate([terminal_offset_lvlh_km, np.zeros(3)])
-    r_chaser_term, v_chaser_term = lvlh_relative_to_eci_state(
-        terminal_rel_lvlh_km,
-        iss_at_handoff[:3],
-        iss_at_handoff[3:6],
+    # ── M8: phasing-orbit drift loop closes the ~670 km gap ──
+    chaser_after_phasing_eci = plan.chaser_trajectory_x[:, -1]
+    drift_plan = compute_phasing_burns(
+        chaser_state_eci=chaser_after_phasing_eci,
+        target_state_eci=iss_at_handoff,
+        thrust_acceleration=thrust_acceleration,
+        n_phase_orbits=2,
         mu=MU_EARTH,
     )
-    chaser_terminal_eci = np.concatenate([r_chaser_term, v_chaser_term])
+    chaser_terminal_eci = drift_plan.chaser_final_eci
+    iss_at_terminal = drift_plan.target_final_eci
     # ── M6: terminal MPC ──
-    a_iss = float(np.linalg.norm(iss_at_handoff[:3]))
+    a_iss = float(np.linalg.norm(iss_at_terminal[:3]))
     n_iss = float(np.sqrt(MU_EARTH / a_iss**3))
     mpc_cfg = TerminalMPCConfig(
         target_pos_lvlh=target_pos_lvlh_m,
@@ -149,7 +144,7 @@ def run_soyuz_ms17_pipeline(
     )
     term = simulate_terminal_phase(
         chaser_initial_eci=chaser_terminal_eci,
-        target_initial_eci=iss_at_handoff,
+        target_initial_eci=iss_at_terminal,
         initial_quat=np.array([0., 0., 0., 1.]),
         initial_omega=np.zeros(3),
         inertia=INERTIA_SOYUZ,
@@ -161,19 +156,22 @@ def run_soyuz_ms17_pipeline(
     # ── Aggregate Δv ──
     phasing_dv_imp_m_s = plan.total_dv_impulsive * 1000.0
     phasing_dv_corr_m_s = plan.total_dv_corrected * 1000.0
+    phasing_drift_dv_imp_m_s = sum(b.dv_magnitude_impulsive * 1000.0 for b in drift_plan.burns)
+    phasing_drift_dv_corr_m_s = sum(b.dv_magnitude_corrected * 1000.0 for b in drift_plan.burns)
     terminal_dv_m_s = sum(
         float(np.linalg.norm(e.dv_lvlh_m_s)) for e in term.impulse_log
     )
-    total_dv = phasing_dv_imp_m_s + terminal_dv_m_s
-    total_dv_corr = phasing_dv_corr_m_s + terminal_dv_m_s
+    total_dv = phasing_dv_imp_m_s + phasing_drift_dv_imp_m_s + terminal_dv_m_s
+    total_dv_corr = phasing_dv_corr_m_s + phasing_drift_dv_corr_m_s + terminal_dv_m_s
     return SoyuzMS17Result(
         phasing_plan=plan,
+        phasing_drift_plan=drift_plan,
         terminal_result=term,
         total_dv_m_s=total_dv,
         total_dv_corrected_m_s=total_dv_corr,
         terminal_distance_m=term.terminal_distance_m,
         n_terminal_impulses=len([e for e in term.impulse_log if e.duration_s > 0]),
-        transfer_duration_s=plan.transfer_time + t_terminal,
+        transfer_duration_s=plan.transfer_time + drift_plan.drift_time + t_terminal,
     )
 
 
@@ -196,6 +194,12 @@ def report(result: SoyuzMS17Result) -> str:
         f"  Phasing total Δv (imp):    {result.phasing_plan.total_dv_impulsive*1000:7.2f} m/s",
         f"  Phasing total Δv (corr):   {result.phasing_plan.total_dv_corrected*1000:7.2f} m/s",
         f"  Transfer time:             {result.phasing_plan.transfer_time:7.1f} s",
+        "",
+        f"Phase matching (M8 — co-elliptic drift):",
+        f"  Delta_theta initial:       {result.phasing_drift_plan.delta_theta_initial_deg:7.2f} deg",
+        f"  Phasing burns: 2 x {result.phasing_drift_plan.burns[0].dv_magnitude_impulsive*1000:.2f} m/s",
+        f"  Drift time ({result.phasing_drift_plan.n_phase_orbits} orbits):  {result.phasing_drift_plan.drift_time/60:.1f} min",
+        f"  Distance after drift:      {result.phasing_drift_plan.relative_distance_final_m:.1f} m",
         "",
         f"Terminal phase (M6 — coupled-state MPC handoff):",
         f"  # impulses fired:          {result.n_terminal_impulses}",

@@ -31,9 +31,9 @@ def test_terminal_distance_converges():
 
 
 def test_total_dv_in_smoke_envelope():
-    """Total Δv (phasing + terminal) within ample [50, 250] m/s envelope."""
+    """Total Δv (phasing + drift + terminal) within ample [50, 400] m/s envelope."""
     res = run_soyuz_ms17_pipeline()
-    assert 50.0 < res.total_dv_m_s < 250.0, \
+    assert 50.0 < res.total_dv_m_s < 400.0, \
         f"total Δv = {res.total_dv_m_s:.1f} m/s outside envelope"
 
 
@@ -52,3 +52,11 @@ def test_make_iss_state_returns_circular_orbit():
     s = make_iss_state(altitude_km=420.0)
     r = float(np.linalg.norm(s[:3]))
     assert abs(r - (6378.137 + 420.0)) < 1.0
+
+
+def test_pipeline_includes_phasing_drift():
+    """Result should expose phasing_drift_plan and reduce relative distance."""
+    res = run_soyuz_ms17_pipeline()
+    assert res.phasing_drift_plan is not None
+    # Distance after M8 drift should be MUCH less than after Hohmann alone
+    assert res.phasing_drift_plan.relative_distance_final_m < 100_000  # < 100 km
