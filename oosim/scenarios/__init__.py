@@ -14,3 +14,4 @@ from .soyuz_ms17 import (  # noqa: F401
     make_iss_state, make_soyuz_insertion_state,
 )
 from .atv1 import make_atv1_scenario  # noqa: F401
+from .htv7 import make_htv7_scenario  # noqa: F401
