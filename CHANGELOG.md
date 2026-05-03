@@ -105,3 +105,16 @@ Manuscript files (`/dados/GoogleDrive/IAC-TURQUIA/manuscript/sections/*.md`) are
 2. Section 3 promises Table 3.1 with capture-envelope numerical presets but the table is not inserted. Simple to add (CANADARM2_BERTHING / NDS_DOCKING / SSVP_DOCKING with semi-axes + v_max + omega_max).
 3. Section 4 lists 12 reference missions; Section 5 Table 5.1 has 11 with only 6 overlap. Needs alignment — Section 5's list (which matches the actual hardcoded mission parsers in oosim/missions/) should become master.
 4. Apollo 11 entry in Table 5.1: "LM RDV" with 1770 m/s should be confirmed — the rendezvous-only Δv is closer to 80 m/s; 1770 m/s includes the ascent insertion burn. Either rename to "LM ascent + RDV" or split the value.
+
+## Opção C kickoff — option-c-physics branch (Apr 26 2026)
+
+Branch `option-c-physics` started for the end-to-end physics-based simulator
+extension. Goal: reproduce Soyuz MS-17 from insertion state to capture
+without using published burns as input.
+
+F2-real (4 weeks, 27/Apr–24/May): coupled physics simulator
+F3-real (5 weeks, 25/May–28/Jun): mission reproduction (5 missions)
+F4 writing → F5 review → F6 submit by 14/Sep/2026.
+
+3 parallel Sonnet agents dispatched for F2-real Modules 1, 2 and 4.
+Module 3 (13-dim coupled state) handled by Opus directly.
