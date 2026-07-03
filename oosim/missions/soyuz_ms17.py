@@ -18,7 +18,7 @@ secondary source — flagged 🟡 in RPOD-50 dataset). Recommended action before
 publication: confirm against Murtazin 2020 paper text or contact RKK Energia.
 URL: https://www.russianspaceweb.com/soyuz-ms-17.html
 """
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True)

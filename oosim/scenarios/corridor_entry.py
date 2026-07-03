@@ -41,7 +41,7 @@ from oosim.proxops.coupled_state import MU_EARTH
 from oosim.proxops.eci_propagator import propagate_orbit
 from oosim.proxops.hcw import hcw_state_transition_matrix
 from oosim.utils.frames_dynamic import (
-    eci_state_to_lvlh_relative, lvlh_relative_to_eci_state,
+    eci_state_to_lvlh_relative,
 )
 from oosim.utils.frames import eci_to_lvlh_rotation
 from oosim.phasing.finite_burn import finite_burn_corrected_dv

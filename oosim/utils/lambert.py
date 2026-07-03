@@ -51,6 +51,9 @@ def lambert_battin(r1: np.ndarray, r2: np.ndarray, tof: float,
                    ) -> tuple[np.ndarray, np.ndarray] | None:
     """Solve single-revolution Lambert via Vallado universal-variable iteration.
 
+    Note: despite the name, this implements Vallado Algorithm 58 (universal
+    variables, Bate-Mueller-White) — NOT Battin's (1987) method.
+
     Args:
         r1, r2: 3-vector position vectors [km] at the two epochs.
         tof: time of flight from r1 to r2 [s], must be > 0.
@@ -89,7 +92,8 @@ def lambert_battin(r1: np.ndarray, r2: np.ndarray, tof: float,
     z = 0.0
 
     def _yz(z_):
-        S = _stumpff_S(z_); C = _stumpff_C(z_)
+        S = _stumpff_S(z_)
+        C = _stumpff_C(z_)
         if abs(C) < _TINY:
             return r1n + r2n
         return r1n + r2n + A * (z_ * S - 1.0) / np.sqrt(C)
@@ -98,7 +102,8 @@ def lambert_battin(r1: np.ndarray, r2: np.ndarray, tof: float,
         y = _yz(z_)
         if y <= 0:
             return None
-        S = _stumpff_S(z_); C = _stumpff_C(z_)
+        S = _stumpff_S(z_)
+        C = _stumpff_C(z_)
         if C <= 0:
             return None
         return (y / C) ** 1.5 * S + A * np.sqrt(y) - np.sqrt(mu) * tof
@@ -107,7 +112,8 @@ def lambert_battin(r1: np.ndarray, r2: np.ndarray, tof: float,
         y = _yz(z_)
         if y <= 0:
             return None
-        S = _stumpff_S(z_); C = _stumpff_C(z_)
+        S = _stumpff_S(z_)
+        C = _stumpff_C(z_)
         if C <= 0:
             return None
         if abs(z_) < 1e-9:

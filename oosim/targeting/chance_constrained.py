@@ -27,7 +27,7 @@ from dataclasses import dataclass
 import numpy as np
 
 try:
-    import cvxpy as cp
+    import cvxpy as cp  # noqa: F401  # availability probe only; QP solve delegated to qp_targeting
     HAVE_CVXPY = True
 except ImportError:
     HAVE_CVXPY = False

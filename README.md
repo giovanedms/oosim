@@ -9,7 +9,7 @@ End-to-end Python framework for simulating rendezvous and robotic berthing for o
 ## Headline results
 
 - **4500/4500 trials success** (Clopper-Pearson 95% lower bound 0.993 per cell, 9 cells × 500 trials, parallel multiprocessing)
-- **11/11 hardcoded missions** validated inside their respective capture envelopes (CANADARM2 / NDS / SSVP)
+- **14/14 mission parsers** validated inside their respective capture envelopes (CANADARM2 / NDS / SSVP)
 - **Soyuz MS-17 ultra-rapid 2-orbit profile** reproduced to **0.43% relative error** on total Δv
 - **Apollo 11 LM rendezvous** reproduced to **0.04% error** (1770.69 vs 1770 m/s published)
 
@@ -22,7 +22,7 @@ oosim/
 ├── attitude/       Quaternion + RCS phase-plane (Schmitt trigger with hysteresis)
 ├── targeting/      Capture envelope + QP solver (hard/soft modes) + UKF + chance-constrained stub
 ├── utils/          ECI/LVLH/RTN frames + Lambert (Battin v1, Izzo v0) + integrators + SGP4 wrapper
-├── missions/       11 hardcoded reference missions (Soyuz MS-17, Apollo 11, ATV-1, ETS-VII, ...)
+├── missions/       14 mission parsers (Soyuz MS-17, Apollo 11, ATV-1, ETS-VII, ...)
 └── validation/     RPOD-50 dataset loader
 ```
 
@@ -33,7 +33,7 @@ git clone https://github.com/giovanedms/oosim.git
 cd oosim
 python -m venv .venv && source .venv/bin/activate
 pip install -e .[dev]
-pytest                                      # 50 tests pass + 1 xfail + 1 xpass
+pytest                                      # runs the full pytest suite (130+ tests)
 python experiments/scripts/12_soyuz_ms17_full.py  # end-to-end Soyuz MS-17 demo
 ```
 
@@ -58,7 +58,7 @@ Key entry points in `experiments/scripts/`:
 | `09_diagnostic.py` | Bisects MPC failure mode (A/B/C/D conditions) | ~30 s |
 | `10_mpc_soft_terminal.py` | v3 Monte Carlo at 9 cells × 30 trials | ~3 min |
 | `12_soyuz_ms17_full.py` | End-to-end Soyuz MS-17 with v3 (UKF + soft + gentler MPC) | <5 s |
-| `14_per_mission_v3.py` | Validates all 11 hardcoded missions | ~30 s |
+| `14_per_mission_v3.py` | Validates all 14 mission parsers | ~30 s |
 | `18_statistical_sweep_parallel.py` | 4500-trial parallel sweep (16 cores) | ~10 min |
 | `21_final_summary.py` | Aggregates all results to FINAL_SUMMARY.md | <1 s |
 

@@ -39,7 +39,6 @@ def _generate_sigma_points(mean: np.ndarray, cov: np.ndarray,
     """Standard scaled sigma-point generator (Julier-Uhlmann)."""
     n = mean.size
     lam = alpha**2 * (n + kappa) - n
-    gamma = np.sqrt(n + lam)
 
     # Cholesky of (n + lam) * cov
     try:

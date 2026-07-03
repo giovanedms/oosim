@@ -10,25 +10,36 @@ deviations to a cone narrowing toward the target. Standard reference:
 import numpy as np
 
 
-def vbar_corridor_bounds(x: float, slope_y: float = 0.10, intercept_y: float = 5.0,
+def vbar_corridor_bounds(y: float, slope_y: float = 0.10, intercept_y: float = 5.0,
                          slope_z: float = 0.05, intercept_z: float = 3.0) -> tuple[float, float]:
-    """Compute |y| and |z| bounds at along-track distance x from target.
+    """Compute |x| (radial) and |z| (cross-track) bounds at along-track distance y.
+
+    LVLH convention: x = R-bar (radial), y = V-bar (along-track, approach axis;
+    chaser approaches from behind with y < 0), z = H-bar (cross-track).
+    Consistent with the corridor constraint in targeting.qp_targeting
+    (parameter names slope_y/slope_z match vbar_slope_y/vbar_slope_z there).
 
     Default values from publicly documented Soyuz/Progress approach corridors.
 
     Args:
-        x: along-track distance to target [m] (positive behind target on V-bar).
-        slope_y, intercept_y: cone parameters for lateral (y) bound: |y| < slope*x + intercept.
-        slope_z, intercept_z: cone parameters for vertical (z) bound.
+        y: along-track distance to target [m] (negative behind target on V-bar).
+        slope_y, intercept_y: cone parameters for radial (x) bound:
+            |x| <= slope_y*|y| + intercept_y.
+        slope_z, intercept_z: cone parameters for cross-track (z) bound:
+            |z| <= slope_z*|y| + intercept_z.
 
     Returns:
-        (y_bound, z_bound) in meters.
+        (x_bound, z_bound) in meters.
     """
-    return slope_y * abs(x) + intercept_y, slope_z * abs(x) + intercept_z
+    return slope_y * abs(y) + intercept_y, slope_z * abs(y) + intercept_z
 
 
 def is_inside_corridor(state: np.ndarray, **kwargs) -> bool:
-    """Check whether HCW state [x, y, z, ...] is inside V-bar corridor."""
+    """Check whether LVLH state [x, y, z, ...] is inside the V-bar corridor.
+
+    The approach distance is |y| = |state[1]| (along-track); radial (x) and
+    cross-track (z) deviations are bounded by affine cones in |y|.
+    """
     x, y, z = state[0], state[1], state[2]
-    yb, zb = vbar_corridor_bounds(x, **kwargs)
-    return abs(y) <= yb and abs(z) <= zb
+    xb, zb = vbar_corridor_bounds(y, **kwargs)
+    return abs(x) <= xb and abs(z) <= zb

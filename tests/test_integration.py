@@ -40,9 +40,13 @@ def test_full_pipeline_iss_phasing_then_capture():
     state_after = propagate_hcw(initial_rel, n, 600.0)
     assert state_after.shape == (6,)
 
-    # 3) Verify V-bar corridor at chaser current position
+    # 3) Verify V-bar corridor at chaser current position (LVLH: x radial,
+    #    y along-track approach axis, z cross-track). Must match the affine
+    #    cone in |y| used by qp_terminal_target.
     inside = is_inside_corridor(state_after)
-    # No assertion on direction — just that the function runs
+    x, y, z = state_after[0], state_after[1], state_after[2]
+    expected = (abs(x) <= 0.10 * abs(y) + 5.0) and (abs(z) <= 0.05 * abs(y) + 3.0)
+    assert inside == expected
 
 
 @pytest.mark.skipif(not HAVE_CVXPY, reason="cvxpy not installed")

@@ -37,7 +37,13 @@ def integrate_with_impulses(rhs: Callable[[float, np.ndarray], np.ndarray],
     states: list[np.ndarray] = []
     state = state0.copy()
 
-    for i in range(len(t_breakpoints) - 1):
+    # Apply any impulse scheduled exactly at t0 before the first segment
+    for t_imp, dv in impulses:
+        if abs(t_imp - t_span[0]) < 1e-9:
+            state[3:] += dv
+
+    n_segments = len(t_breakpoints) - 1
+    for i in range(n_segments):
         t0, tf = t_breakpoints[i], t_breakpoints[i + 1]
         if tf <= t0:
             continue
@@ -45,8 +51,14 @@ def integrate_with_impulses(rhs: Callable[[float, np.ndarray], np.ndarray],
         t_eval = np.linspace(t0, tf, n_local)
         sol = solve_ivp(rhs, (t0, tf), state, t_eval=t_eval,
                         rtol=rtol, atol=atol, method="DOP853")
-        times.append(sol.t)
-        states.append(sol.y)
+        if i < n_segments - 1:
+            # Drop the segment endpoint: the next segment re-emits it at its
+            # start with the post-impulse state, avoiding duplicate timestamps.
+            times.append(sol.t[:-1])
+            states.append(sol.y[:, :-1])
+        else:
+            times.append(sol.t)
+            states.append(sol.y)
         state = sol.y[:, -1].copy()
         # Apply any impulse exactly at tf
         for t_imp, dv in impulses:

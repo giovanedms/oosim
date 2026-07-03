@@ -13,7 +13,6 @@ COPY tests ./tests
 COPY experiments ./experiments
 
 RUN pip install --no-cache-dir --upgrade pip \
- && pip install --no-cache-dir -e .[dev] \
- && pip install --no-cache-dir sgp4
+ && pip install --no-cache-dir -e .[dev]
 
 CMD ["pytest", "-v", "--tb=short"]

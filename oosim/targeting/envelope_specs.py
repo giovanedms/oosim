@@ -9,8 +9,9 @@ capture envelope until laboratory-specific values for the KUKA KR 1000 TITAN
 at the SIVOR/ITA facility become available (planned for the A1 journal extension).
 
 References:
-    Lewis, J. L. & Donahoe, S. R. (2022). The Standardization of In-Space and
-        Surface Docking Systems. J. Space Safety Eng. 9(3). NASA NTRS 20220004016.
+    Lewis, J. L. & Donahoe, S. R. (2023). Space Vehicle Docking System
+        Standardization. J. Space Safety Eng. 10(2), 127-132.
+        DOI: 10.1016/j.jsse.2022.09.004 (preprint: NASA NTRS 20220004016).
     Ueda, S., Kasai, T., Uematsu, H. (2010). HTV Rendezvous Technique and GN&C
         Design Evaluation. AIAA. DOI: 10.2514/6.2010-7664.
     Miotto, P., Hannan, M. R., Beck, C. E. (2010). Designing and Validating
@@ -50,7 +51,7 @@ CANADARM2_BERTHING = CaptureEnvelope(
 # NDS / IDSS soft-capture spec (Crew Dragon, Cargo Dragon-2, Starliner)
 # -----------------------------------------------------------------------------
 # The NASA Docking System Block 1 (NDS) / International Docking System Standard
-# (IDSS) soft-capture envelope is documented by Lewis & Donahoe (2022). The
+# (IDSS) soft-capture envelope is documented by Lewis & Donahoe (2023). The
 # active vehicle must arrive at the docking interface within tighter bounds
 # than berthing because the capture latches close immediately on contact.
 NDS_DOCKING = CaptureEnvelope(

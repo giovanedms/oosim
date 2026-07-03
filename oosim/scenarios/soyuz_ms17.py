@@ -182,7 +182,7 @@ def report(result: SoyuzMS17Result) -> str:
         "║  Soyuz MS-17 end-to-end smoke test (Option C, F2-real Module 7)  ║",
         "╚══════════════════════════════════════════════════════════════════╝",
         "",
-        f"Phasing (M5 — Hohmann + finite-burn correction):",
+        "Phasing (M5 — Hohmann + finite-burn correction):",
         f"  Burn 1: {result.phasing_plan.burns[0].label:<22} "
         f"|Δv|_imp = {result.phasing_plan.burns[0].dv_magnitude_impulsive*1000:7.2f} m/s, "
         f"|Δv|_corr = {result.phasing_plan.burns[0].dv_magnitude_corrected*1000:7.2f} m/s, "
@@ -195,23 +195,23 @@ def report(result: SoyuzMS17Result) -> str:
         f"  Phasing total Δv (corr):   {result.phasing_plan.total_dv_corrected*1000:7.2f} m/s",
         f"  Transfer time:             {result.phasing_plan.transfer_time:7.1f} s",
         "",
-        f"Phase matching (M8 — co-elliptic drift):",
+        "Phase matching (M8 — co-elliptic drift):",
         f"  Delta_theta initial:       {result.phasing_drift_plan.delta_theta_initial_deg:7.2f} deg",
         f"  Phasing burns: 2 x {result.phasing_drift_plan.burns[0].dv_magnitude_impulsive*1000:.2f} m/s",
         f"  Drift time ({result.phasing_drift_plan.n_phase_orbits} orbits):  {result.phasing_drift_plan.drift_time/60:.1f} min",
         f"  Distance after drift:      {result.phasing_drift_plan.relative_distance_final_m:.1f} m",
         "",
-        f"Terminal phase (M6 — coupled-state MPC handoff):",
+        "Terminal phase (M6 — coupled-state MPC handoff):",
         f"  # impulses fired:          {result.n_terminal_impulses}",
         f"  Terminal distance:         {result.terminal_distance_m:7.2f} m",
         "",
-        f"Aggregate:",
+        "Aggregate:",
         f"  Total Δv (imp + terminal): {result.total_dv_m_s:7.2f} m/s",
         f"  Total Δv (corr + terminal):{result.total_dv_corrected_m_s:7.2f} m/s",
         f"  Mission duration:          {result.transfer_duration_s/60:6.1f} min",
         "",
-        f"Reference: Murtazin (2020) reports ≈110.7 m/s for ultra-rapid 2-orbit",
-        f"           Soyuz profile. PDF currently inaccessible — value is",
-        f"           qualitative target only.",
+        "Reference: Murtazin (2020) reports ≈110.7 m/s for ultra-rapid 2-orbit",
+        "           Soyuz profile. PDF currently inaccessible — value is",
+        "           qualitative target only.",
     ]
     return "\n".join(lines)

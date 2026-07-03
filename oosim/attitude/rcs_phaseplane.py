@@ -7,7 +7,6 @@ the standard Schmitt trigger with hysteresis.
 Reference: Wertz et al. (2011). SME-SMAD; Sidi (1997).
 """
 from dataclasses import dataclass
-import numpy as np
 
 
 @dataclass

@@ -36,7 +36,13 @@ from oosim.targeting.qp_targeting import qp_terminal_target
 
 @dataclass
 class TerminalMPCConfig:
-    """Config for the terminal-phase MPC controller."""
+    """Config for the terminal-phase MPC controller.
+
+    lambda_terminal_pos/vel are the soft-mode terminal penalty weights
+    forwarded to qp_terminal_target. Default 100.0 preserves the historical
+    behaviour of this controller; the published Monte Carlo experiments of
+    the paper (scripts 10/14/18) override both to 1000.0 explicitly.
+    """
     target_pos_lvlh: np.ndarray              # capture envelope centre [m, LVLH]
     target_n: float                          # target mean motion [rad/s]
     capture_radius: float = 0.3              # [m]
@@ -47,6 +53,8 @@ class TerminalMPCConfig:
     thrust_acceleration: float = 5.6e-5      # body-frame max accel [km/s^2]
     terminal_mode: str = 'soft'              # 'soft' or 'hard'
     qp_solver: str = 'ECOS'                  # CVXPY solver; 'SCS' more robust for edge states
+    lambda_terminal_pos: float = 100.0       # soft-mode terminal position weight
+    lambda_terminal_vel: float = 100.0       # soft-mode terminal velocity weight
 
 
 @dataclass
@@ -116,6 +124,8 @@ class TerminalMPCController:
             v_max_terminal=self.cfg.v_max_terminal,
             dv_max_per_step=self.cfg.qp_dv_max_per_step,
             terminal_mode=self.cfg.terminal_mode,
+            lambda_terminal_pos=self.cfg.lambda_terminal_pos,
+            lambda_terminal_vel=self.cfg.lambda_terminal_vel,
             solver=self.cfg.qp_solver,
         )
         if not result.success:

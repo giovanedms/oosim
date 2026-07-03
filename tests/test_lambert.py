@@ -24,9 +24,8 @@ def test_lambert_simple_circular_to_circular_180deg():
     assert result is not None
 
 
-@pytest.mark.xfail(reason="Battin v0 has convergence issues; F2 will replace with Izzo (2015) impl")
 def test_lambert_90deg_transfer():
-    """A 90-deg transfer in plane — should be well-conditioned but Battin v0 fails."""
+    """A 90-deg transfer in plane — well-conditioned, must converge (v1 fixed this)."""
     R_E = 6378.137
     a = R_E + 500.
     mu = 398600.4418

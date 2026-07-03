@@ -1,6 +1,6 @@
 [project]
 name = "oosim"
-version = "0.1.0"
+version = "0.2.0"
 description = "Open On-Orbit Servicing Simulator: end-to-end framework for rendezvous and robotic berthing simulation"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -14,7 +14,7 @@ dependencies = [
   "numpy>=2.0",
   "scipy>=1.13",
   "astropy>=6.0",
-  "poliastro>=0.17 ; python_version<'3.12'",
+  "sgp4>=2.23",
   "matplotlib>=3.8",
   "cvxpy>=1.5",
   "ecos>=2.0",

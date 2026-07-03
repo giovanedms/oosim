@@ -73,6 +73,8 @@ def qp_terminal_target(initial_state: np.ndarray,
                        vbar_slope_y: float = 0.10, vbar_intercept_y: float = 5.0,
                        vbar_slope_z: float = 0.05, vbar_intercept_z: float = 3.0,
                        terminal_mode: str = "hard",
+                       # Conservative library defaults; the published v3 calibration
+                       # (paper MC experiments, scripts 10/14/18) overrides both to 1000.0.
                        lambda_terminal_pos: float = 100.0,
                        lambda_terminal_vel: float = 100.0,
                        solver: str = "ECOS") -> QPTargetingResult:
@@ -89,8 +91,9 @@ def qp_terminal_target(initial_state: np.ndarray,
         v_max_terminal: max ||v|| at horizon end [m/s].
         dv_max_per_step: max ||Δv|| per impulse [m/s].
         lambda_pos: weight on terminal position error.
-        enforce_vbar_corridor: if True, enforce |y_k| <= sy*|x_k|+by and
-            |z_k| <= sz*|x_k|+bz over the entire horizon (V-bar approach).
+        enforce_vbar_corridor: if True, enforce |x_k| <= sy*|y_k|+by and
+            |z_k| <= sz*|y_k|+bz over the entire horizon (V-bar approach along
+            y, the along-track axis; chaser behind the target with y <= 0).
         vbar_slope_y, vbar_intercept_y: V-bar lateral cone parameters.
         vbar_slope_z, vbar_intercept_z: V-bar vertical cone parameters.
         solver: CVXPY solver name.

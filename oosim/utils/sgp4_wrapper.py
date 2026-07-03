@@ -9,7 +9,7 @@ Reference:
     Vallado, D. A. & Crawford, P. (2008). SGP4 Orbit Determination. AIAA-2008-6770.
     https://celestrak.org/publications/AIAA/2008-6770/
 """
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 import numpy as np
 
 try:

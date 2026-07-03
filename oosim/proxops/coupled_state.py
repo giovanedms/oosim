@@ -23,7 +23,7 @@ Reference dynamics (Vallado, Sidi):
     dq/dt = 0.5 · Ω(ω) · q
     dω/dt = I⁻¹ · (torque_body - ω × I·ω)
 """
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Callable
 import numpy as np
 from scipy.integrate import solve_ivp
