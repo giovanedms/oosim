@@ -1,9 +1,9 @@
-"""Figure 11: per-mission validation grid (11 small thumbnails).
+"""Figure 11: per-mission validation grid (14 small thumbnails).
 
-Reads per_mission_v3.csv and produces a single figure with 11 subplot
+Reads per_mission_v3.csv and produces a single figure with 14 subplot
 thumbnails — one per hardcoded mission — each showing a bar with the
 terminal position error and a horizontal line marking the relevant
-envelope semi-axis. All bars green (all 11 inside their envelopes).
+envelope semi-axis. All bars green (all 14 inside their envelopes).
 """
 from pathlib import Path
 import csv
@@ -70,7 +70,7 @@ def main():
         axs[i].axis("off")
 
     fig.suptitle("Figure 11. Per-mission v3 validation: terminal position error "
-                 "vs capture envelope semi-axis (all 11 inside envelope)",
+                 f"vs capture envelope semi-axis (all {n_missions} inside envelope)",
                  fontsize=10)
     fig.tight_layout()
     fig.savefig(OUT / "fig11_per_mission_grid.png")

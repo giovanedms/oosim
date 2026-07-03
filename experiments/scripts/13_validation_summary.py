@@ -1,6 +1,6 @@
 """Generate validation_summary.csv: one row per hardcoded mission.
 
-Cross-references the 11 mission parsers with the v3 simulator to produce a
+Cross-references the 14 mission parsers with the v3 simulator to produce a
 unified validation table that can be cited in Section 5.2 of the paper.
 """
 from datetime import datetime, timezone

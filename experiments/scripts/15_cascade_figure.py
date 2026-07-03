@@ -4,8 +4,13 @@ Bar chart comparing success rate and p95 terminal pos error for the four
 versions of the Monte Carlo, at the central cell (5 cm noise, 100 ms latency).
 This is the "headline" figure of Section 5 — visualizes the architectural
 journey from cosmetic-success (v0) to genuine-success (v3).
+
+Values are read from the latest Monte Carlo CSVs in experiments/results/
+(monte_carlo_noise = v0, monte_carlo_mpc = v1, monte_carlo_ukf = v2,
+monte_carlo_soft = v3), central cell noise_3sig_m=0.05, latency_s=0.10.
 """
 from pathlib import Path
+import csv
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -19,6 +24,24 @@ plt.rcParams.update({
 })
 
 OUT = Path(__file__).resolve().parent.parent / "figures"
+RESULTS = Path(__file__).resolve().parent.parent / "results"
+
+CENTRAL_NOISE = 0.05   # 5 cm 3-sigma
+CENTRAL_LATENCY = 0.10  # 100 ms
+
+
+def central_cell(pattern: str) -> dict:
+    """Read the central noise/latency cell from the latest CSV matching pattern."""
+    files = sorted(RESULTS.glob(pattern))
+    if not files:
+        raise FileNotFoundError(f"no results CSV matching {pattern} in {RESULTS}")
+    with open(files[-1]) as f:
+        rows = list(csv.DictReader(f))
+    for r in rows:
+        if (abs(float(r["noise_3sig_m"]) - CENTRAL_NOISE) < 1e-9
+                and abs(float(r["latency_s"]) - CENTRAL_LATENCY) < 1e-9):
+            return r
+    raise ValueError(f"central cell not found in {files[-1]}")
 
 
 def main():
@@ -26,11 +49,17 @@ def main():
                 "v1\nMPC hard\n(no UKF)",
                 "v2\nUKF + hard",
                 "v3\nUKF + soft\n+ gentler"]
-    success_pct = [100, 0, 0, 100]
+    cells = [central_cell(p) for p in ("monte_carlo_noise_*.csv",
+                                       "monte_carlo_mpc_*.csv",
+                                       "monte_carlo_ukf_*.csv",
+                                       "monte_carlo_soft_*.csv")]
+    success_pct = [round(float(c["success_rate"]) * 100) for c in cells]
     # p95 pos error in mm at central cell (5cm noise, 100ms latency)
-    p95_err = [0.4, 1080, 1027, 53]
+    p95_err = [float(c["pos_err_p95_m"]) * 1000 for c in cells]
     # Mean total dv mm/s
-    mean_dv = [0.94, 386, 388, 486]
+    mean_dv = [float(c["total_dv_mean_ms"]) * 1000 for c in cells]
+    for v, s, p, d in zip(versions, success_pct, p95_err, mean_dv):
+        print(f"  {v.splitlines()[0]:4} success={s}%  p95={p:.1f} mm  mean_dv={d:.1f} mm/s")
 
     fig, axs = plt.subplots(1, 3, figsize=(9.0, 3.0))
     colors = ["lightgray", "#d62728", "#d62728", "#2ca02c"]
@@ -58,7 +87,8 @@ def main():
     axs[1].set_title("(b) Terminal position error")
     axs[1].legend(loc="upper right", fontsize=7)
     for b, v in zip(bars, p95_err):
-        axs[1].text(b.get_x() + b.get_width()/2, v * 1.4, f"{v} mm",
+        label = f"{v:.1f}" if v < 10 else f"{v:.0f}"
+        axs[1].text(b.get_x() + b.get_width()/2, v * 1.4, f"{label} mm",
                     ha="center", va="bottom", fontsize=8)
 
     # Panel (c): mean total dv (log scale)
@@ -70,7 +100,7 @@ def main():
     axs[2].set_ylim(0.5, 2000)
     axs[2].set_title("(c) Propellant cost")
     for b, v in zip(bars, mean_dv):
-        axs[2].text(b.get_x() + b.get_width()/2, v * 1.4, f"{v}",
+        axs[2].text(b.get_x() + b.get_width()/2, v * 1.4, f"{v:.0f}",
                     ha="center", va="bottom", fontsize=8)
 
     fig.suptitle("Figure 9. v0 → v3 architectural cascade at the central noise/latency cell\n"

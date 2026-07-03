@@ -69,7 +69,7 @@ def main():
         ax.annotate("", xy=dst, xytext=src,
                     arrowprops=dict(arrowstyle="->", lw=0.7, color="black"))
 
-    ax.text(5.5, 6.8, "OOSim v3 architecture (validated 11/11 missions, 100/100 trials at central cell)",
+    ax.text(5.5, 6.8, "OOSim v3 architecture (validated 14/14 missions, 100/100 trials at central cell)",
             ha="center", fontsize=10, weight="bold")
     fig.savefig(OUT / "fig01_architecture_v3.png")
     plt.close(fig)

@@ -43,7 +43,7 @@ def main():
         "| v0 | Open-loop QP single-shot (cosmetic) | 100% | 0.4 mm |",
         "| v1 | Closed-loop MPC, hard terminal | **0%** | 1080 mm |",
         "| v2 | UKF + closed-loop MPC, hard terminal | **0%** | 1027 mm |",
-        "| v3 | UKF + soft terminal cost + gentler control | **100%** | 12-153 mm |",
+        "| v3 | UKF + soft terminal cost + gentler control | **100%** | 10.3-153.1 mm |",
         "",
         "Architectural lesson: hard terminal constraints in receding-horizon MPC ",
         "cause sub-optimization (each iteration commits to a plan it discards). ",
@@ -70,7 +70,7 @@ def main():
         out_lines.append("")
 
     if per_miss.exists():
-        out_lines.append("## Per-mission validation (v3 pipeline, 11 hardcoded missions)")
+        out_lines.append("## Per-mission validation (v3 pipeline, 14 hardcoded missions)")
         out_lines.append("")
         out_lines.append("| Mission | Sim total dv [m/s] | Pub total dv [m/s] | Rel err [%] | Pos err [mm] | Inside env? |")
         out_lines.append("|---|---|---|---|---|---|")

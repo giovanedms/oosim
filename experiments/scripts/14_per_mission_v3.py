@@ -1,6 +1,6 @@
 """Per-mission terminal-phase validation with v3 (UKF + soft + gentler MPC).
 
-Replays each of the 11 hardcoded missions through the same v3 pipeline used
+Replays each of the 14 hardcoded missions through the same v3 pipeline used
 for Soyuz MS-17 in script 12. Generates `experiments/results/per_mission_v3.csv`
 with one row per mission containing the simulated terminal-phase metrics.
 

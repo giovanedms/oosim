@@ -1,15 +1,16 @@
 """Generate Section 5 validation comparison bar chart figure.
 
 Compares simulated total Δv against published values for the missions where
-both are available. Saves PNG to experiments/figures/.
+both are available, reading the real v3 pipeline results from
+experiments/results/per_mission_v3.csv (script 14). Saves PNG to
+experiments/figures/.
 """
 from pathlib import Path
+import csv
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-
-from oosim.missions import ALL_MISSIONS
 
 plt.rcParams.update({
     "font.family": "serif", "font.size": 9,
@@ -23,27 +24,48 @@ OUT.mkdir(parents=True, exist_ok=True)
 
 
 def fig_validation_comparison():
-    """Bar chart: per-mission published vs simulated total Δv (where available)."""
-    missions_with_dv = [m for m in ALL_MISSIONS if m.total_dv_ms > 0]
-    names = [m.mission_id for m in missions_with_dv]
-    published = np.array([m.total_dv_ms for m in missions_with_dv])
-    # For now, simulated = published (we replay the burns exactly).
-    # When real closed-loop simulation runs, this becomes the comparison.
-    simulated = published.copy()
+    """Bar chart: per-mission published vs simulated total Δv (where available).
+
+    Reads the actual v3 closed-loop results (per_mission_v3.csv, script 14) and
+    plots published vs simulated totals for the missions with a documented
+    published Δv (Soyuz MS-17, Apollo 11 LM RDV, ASTP), annotating the relative
+    error. Log scale because Apollo (~1770 m/s) dwarfs ASTP (~28 m/s).
+    """
+    results_dir = Path(__file__).resolve().parent.parent / "results"
+    csv_file = results_dir / "per_mission_v3.csv"
+    if not csv_file.exists():
+        print("  per_mission_v3.csv not found; run script 14 first")
+        return
+    with open(csv_file) as f:
+        rows = [r for r in csv.DictReader(f)
+                if float(r["published_total_dv_ms"]) > 0]
+    names = [r["mission_id"] for r in rows]
+    published = np.array([float(r["published_total_dv_ms"]) for r in rows])
+    simulated = np.array([float(r["total_dv_simulated_ms"]) for r in rows])
+    rel_err = [r["relative_error_pct"] for r in rows]
+
     fig, ax = plt.subplots(figsize=(6.0, 3.0))
     x = np.arange(len(names))
     w = 0.35
     ax.bar(x - w / 2, published, w, label="published", color="tab:gray", edgecolor="black", lw=0.6)
-    ax.bar(x + w / 2, simulated, w, label="OOSim simulated", color="tab:blue", edgecolor="black", lw=0.6)
+    ax.bar(x + w / 2, simulated, w, label="OOSim simulated (v3)", color="tab:blue", edgecolor="black", lw=0.6)
+    ax.set_yscale("log")
+    ax.set_ylim(top=float(published.max()) * 8)
+    for xi, pub, sim, err in zip(x, published, simulated, rel_err):
+        ax.text(xi, max(pub, sim) * 1.3,
+                f"pub {pub:.2f}\nsim {sim:.2f}\nerr {err}%",
+                ha="center", va="bottom", fontsize=7)
     ax.set_xticks(x)
     ax.set_xticklabels([n.replace("_", "\n") for n in names], fontsize=7)
-    ax.set_ylabel("total $\\Delta v$ [m/s]")
-    ax.set_title("Figure 5. Total $\\Delta v$ comparison: published vs OOSim", fontsize=10)
-    ax.legend(loc="upper left", fontsize=8)
+    ax.set_ylabel("total $\\Delta v$ [m/s] (log)")
+    ax.set_title("Figure 5. Total $\\Delta v$ comparison: published vs OOSim v3", fontsize=10)
+    ax.legend(loc="upper right", fontsize=8)
     fig.tight_layout()
     fig.savefig(OUT / "fig05_validation_comparison.png")
     plt.close(fig)
     print(f"  saved {OUT / 'fig05_validation_comparison.png'}")
+    for nm, pub, sim, err in zip(names, published, simulated, rel_err):
+        print(f"    {nm:20} published={pub:8.2f}  simulated={sim:8.2f}  rel_err={err}%")
 
 
 def fig_mc_heatmap():
