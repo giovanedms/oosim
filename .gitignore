@@ -17,7 +17,9 @@ htmlcov/
 .ipynb_checkpoints/
 *.npz
 *.pkl
-results/
+# experiments/results/ is versioned on purpose: the manuscript cites those CSVs
+# as the evidence trail, and the whole directory is under 100 KB.
+!experiments/results/
 figures/*.png
 !figures/.gitkeep
 .DS_Store

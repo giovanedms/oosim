@@ -1,0 +1,23 @@
+{
+  "mission_id": "SOYUZ_MS17",
+  "phasing_dv_replayed_ms": 110.69999999999999,
+  "terminal_dv_simulated_ms": 0.48086778883721415,
+  "total_dv_ms": 111.1808677888372,
+  "published_total_dv_ms": 110.7,
+  "terminal_pos_error_mm": 30.910375628602864,
+  "terminal_vel_norm_mm_s": 29.885350903727304,
+  "inside_envelope_pos": true,
+  "inside_envelope_vel": true,
+  "calibration": {
+    "N_steps": 30,
+    "dt_s": 10.0,
+    "dv_max_ms": 0.05,
+    "noise_3sig_m": 0.05,
+    "latency_s": 0.1
+  },
+  "primary_doi": "10.1016/j.actaastro.2020.04.032",
+  "trajectory_summary": {
+    "n_impulses": 29,
+    "duration_min": 5.0
+  }
+}
