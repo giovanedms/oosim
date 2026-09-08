@@ -99,9 +99,6 @@ def main():
     ax.add_patch(circle)
     ax.set_xlabel("along-track distance to ISS [m]")
     ax.set_ylabel("R-bar [m]")
-    ax.set_title(f"Figure 10. Soyuz MS-17 v3 terminal phase, SGP4-anchored to ISS orbit\n"
-                 f"(MS-17 epoch 2020-10-14 05:45:04 UTC; ISS altitude {altitude:.0f} km; "
-                 f"final pos err {pos_err*1000:.1f} mm)", fontsize=8)
     ax.invert_xaxis(); ax.legend(fontsize=8); ax.set_aspect("equal")
     fig.tight_layout()
     fig.savefig(OUT / "fig10_sgp4_anchor.png")

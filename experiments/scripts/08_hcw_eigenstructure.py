@@ -58,7 +58,6 @@ def main():
     axs[1].set_title("(b) Symplecticity check (numerical)", fontsize=9)
     axs[1].set_yscale("symlog", linthresh=1e-15)
 
-    fig.suptitle("Figure 7. HCW state-transition matrix eigenstructure", fontsize=10)
     fig.tight_layout()
     fig.savefig(OUT / "fig07_hcw_eigenstructure.png")
     plt.close(fig)

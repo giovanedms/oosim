@@ -69,9 +69,6 @@ def main():
     for i in range(len(rows), len(axs)):
         axs[i].axis("off")
 
-    fig.suptitle("Figure 11. Per-mission v3 validation: terminal position error "
-                 f"vs capture envelope semi-axis (all {n_missions} inside envelope)",
-                 fontsize=10)
     fig.tight_layout()
     fig.savefig(OUT / "fig11_per_mission_grid.png")
     plt.close(fig)

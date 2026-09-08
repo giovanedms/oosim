@@ -58,7 +58,6 @@ def fig_validation_comparison():
     ax.set_xticks(x)
     ax.set_xticklabels([n.replace("_", "\n") for n in names], fontsize=7)
     ax.set_ylabel("total $\\Delta v$ [m/s] (log)")
-    ax.set_title("Figure 5. Total $\\Delta v$ comparison: published vs OOSim v3", fontsize=10)
     ax.legend(loc="upper right", fontsize=8)
     fig.tight_layout()
     fig.savefig(OUT / "fig05_validation_comparison.png")
@@ -122,7 +121,6 @@ def fig_mc_heatmap():
             axs[1].text(j, i, f"{p95_pos[i,j]*1000:.1f}", ha="center", va="center",
                         fontsize=8, color="white")
 
-    fig.suptitle("Figure 6. Monte Carlo robustness across noise/latency grid", fontsize=10)
     fig.tight_layout()
     fig.savefig(OUT / "fig06_mc_heatmap.png")
     plt.close(fig)

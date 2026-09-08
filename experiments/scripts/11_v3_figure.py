@@ -70,8 +70,6 @@ def main():
     axs[1].set_title("(b) Error scaling vs noise")
     axs[1].legend(loc="upper left", fontsize=7)
 
-    fig.suptitle("Figure 8. v3 results — UKF + soft-terminal MPC achieves 100% success",
-                 fontsize=10)
     fig.tight_layout()
     fig.savefig(OUT / "fig08_v3_results.png")
     plt.close(fig)

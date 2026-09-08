@@ -65,7 +65,6 @@ def fig_architecture():
         ax.annotate("", xy=dst, xytext=src,
                     arrowprops=dict(arrowstyle="->", lw=0.7, color="black"))
 
-    ax.set_title("Figure 1. OOSim modular architecture and data flow", fontsize=10)
     fig.savefig(OUT / "fig01_architecture.png")
     plt.close(fig)
     print(f"  saved {OUT / 'fig01_architecture.png'}")
@@ -110,8 +109,6 @@ def fig_vbar_corridor():
             axs[1].plot(-result.states[:, 1], result.states[:, 2], color=color, lw=1.0)
     axs[0].legend(loc="upper right", fontsize=7)
 
-    fig.suptitle("Figure 2. V-bar approach corridor with three Soyuz-style profiles",
-                 fontsize=10)
     fig.tight_layout()
     fig.savefig(OUT / "fig02_vbar_corridor.png")
     plt.close(fig)
@@ -140,7 +137,6 @@ def fig_capture_envelope():
         ax.set_xlabel("x [m]"); ax.set_ylabel("y [m]"); ax.set_zlabel("z [m]")
         ax.set_box_aspect([1, 1, 1])
 
-    fig.suptitle("Figure 3. Capture envelope presets (workspace ellipsoids)", fontsize=10)
     fig.tight_layout()
     fig.savefig(OUT / "fig03_capture_envelopes.png")
     plt.close(fig)
@@ -158,8 +154,6 @@ def fig_gain_scheduling():
     ax.set_xticks(x); ax.set_xticklabels(phases, fontsize=8)
     ax.set_ylabel("attitude-loop bandwidth [rad/s]")
     ax.set_yscale("log")
-    ax.set_title("Figure 4. Phase-dependent gain-scheduling profile (illustrative)",
-                 fontsize=10)
     fig.tight_layout()
     fig.savefig(OUT / "fig04_gain_scheduling.png")
     plt.close(fig)

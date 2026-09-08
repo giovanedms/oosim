@@ -103,9 +103,6 @@ def main():
         axs[2].text(b.get_x() + b.get_width()/2, v * 1.4, f"{v:.0f}",
                     ha="center", va="bottom", fontsize=8)
 
-    fig.suptitle("Figure 9. v0 → v3 architectural cascade at the central noise/latency cell\n"
-                 "(5 cm 3-$\\sigma$ position noise, 100 ms communication latency)",
-                 fontsize=10)
     fig.tight_layout()
     fig.savefig(OUT / "fig09_cascade.png")
     plt.close(fig)

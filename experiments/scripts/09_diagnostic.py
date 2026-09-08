@@ -190,7 +190,6 @@ def main():
         ax.invert_xaxis()
         ax.legend(fontsize=7); ax.grid(alpha=0.3)
 
-    fig.suptitle("Figure D1. MPC closed-loop trajectory diagnostic", fontsize=10)
     fig.tight_layout()
     out = Path(__file__).resolve().parent.parent / "figures" / "fig_diagnostic.png"
     fig.savefig(out, dpi=150, bbox_inches="tight")
