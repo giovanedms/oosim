@@ -37,7 +37,7 @@ def trial_noise_free_mpc(N_steps, dt, dv_max, capture_state_history=False):
     history = [true_state.copy()] if capture_state_history else None
     for k in range(N_steps):
         remaining = N_steps - k
-        if remaining < 2:
+        if remaining < 1:  # apply every planned impulse, including the last
             break
         result = qp_terminal_target(
             initial_state=true_state, target_pos=target, n=n,
@@ -88,7 +88,7 @@ def trial_noisy_with_ukf(N_steps, dt, dv_max, noise_3sig, latency, rng):
         estimate = ukf_predict(estimate, n, latency, Q)
         estimate = ukf_update(estimate, meas, R)
         remaining = N_steps - k
-        if remaining < 2:
+        if remaining < 1:  # apply every planned impulse, including the last
             break
         result = qp_terminal_target(
             initial_state=estimate.mean, target_pos=target, n=n,

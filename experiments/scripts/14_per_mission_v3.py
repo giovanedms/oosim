@@ -68,7 +68,7 @@ def run_terminal(mission, rng) -> dict:
         estimate = ukf_predict(estimate, n, LATENCY, Q)
         estimate = ukf_update(estimate, meas, R)
         remaining = N_STEPS - k
-        if remaining < 2:
+        if remaining < 1:  # apply every planned impulse, including the last
             break
         result = qp_terminal_target(
             initial_state=estimate.mean, target_pos=target, n=n,

@@ -70,7 +70,7 @@ def main():
         estimate = ukf_predict(estimate, n, 0.10, Q)
         estimate = ukf_update(estimate, meas, R_meas)
         remaining = 30 - k
-        if remaining < 2: break
+        if remaining < 1: break  # apply every planned impulse, including the last
         result = qp_terminal_target(
             initial_state=estimate.mean, target_pos=target_pos_lvlh, n=n,
             horizon_steps=remaining, dt=10.0,

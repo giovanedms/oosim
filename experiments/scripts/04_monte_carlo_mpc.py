@@ -61,7 +61,7 @@ def run_mpc_trial(noise_3sig_m: float, latency_s: float, n: float, rng) -> dict:
 
         # 3) QP over remaining horizon
         remaining = N_STEPS - k
-        if remaining < 2:
+        if remaining < 1:  # apply every planned impulse, including the last
             break
         result = qp_terminal_target(
             initial_state=measured,

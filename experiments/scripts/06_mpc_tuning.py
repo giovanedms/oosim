@@ -37,7 +37,7 @@ def trial(N_steps, dt, dv_max, lambda_p, rng) -> dict:
         meas[:3] += meas[3:] * LATENCY
 
         remaining = N_steps - k
-        if remaining < 2:
+        if remaining < 1:  # apply every planned impulse, including the last
             break
         result = qp_terminal_target(
             initial_state=meas, target_pos=target, n=N,

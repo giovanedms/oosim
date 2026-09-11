@@ -46,7 +46,7 @@ def run_trial(noise_3sig, latency, n, target, rng, use_ukf=True):
             qp_input[:3] += qp_input[3:] * latency
 
         remaining = N_STEPS - k
-        if remaining < 2:
+        if remaining < 1:  # apply every planned impulse, including the last
             break
         result = qp_terminal_target(
             initial_state=qp_input, target_pos=target, n=n,

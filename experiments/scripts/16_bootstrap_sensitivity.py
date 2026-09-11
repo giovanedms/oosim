@@ -36,7 +36,7 @@ def trial(noise_3sig, latency, n, target, rng):
         estimate = ukf_predict(estimate, n, latency, Q)
         estimate = ukf_update(estimate, meas, R)
         remaining = N_STEPS - k
-        if remaining < 2: break
+        if remaining < 1: break  # apply every planned impulse, including the last
         result = qp_terminal_target(
             initial_state=estimate.mean, target_pos=target, n=n,
             horizon_steps=remaining, dt=DT,
