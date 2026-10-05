@@ -15,12 +15,18 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import matplotlib.ticker
 
+# Drawn at the exact single-column print width (\columnwidth = 231.75 pt) and
+# included at scale 1.0, so every label prints at its nominal 6.5-8 pt size.
 plt.rcParams.update({
-    "font.family": "serif", "font.size": 9,
-    "axes.linewidth": 0.6, "axes.grid": True,
+    "font.family": "serif",
+    "font.serif": ["STIX Two Text", "STIXGeneral", "Times New Roman", "DejaVu Serif"],
+    "mathtext.fontset": "stix", "font.size": 7, "axes.titlesize": 7.5,
+    "xtick.labelsize": 7.5, "ytick.labelsize": 6.5,
+    "axes.linewidth": 0.6, "axes.grid": True, "axes.axisbelow": True,
     "grid.alpha": 0.25, "grid.linestyle": "--", "grid.linewidth": 0.4,
-    "savefig.dpi": 300, "savefig.bbox": "tight",
+    "pdf.fonttype": 42, "savefig.dpi": 600,
 })
 
 OUT = Path(__file__).resolve().parent.parent / "figures"
@@ -61,52 +67,54 @@ def main():
     for v, s, p, d in zip(versions, success_pct, p95_err, mean_dv):
         print(f"  {v.splitlines()[0]:4} success={s}%  p95={p:.1f} mm  mean_dv={d:.1f} mm/s")
 
-    fig, axs = plt.subplots(1, 3, figsize=(9.0, 3.0))
+    # Tick labels carry only the version tag; the caption spells out each
+    # generation, which the full "v0\nopen-loop\n(cosmetic)" labels could not
+    # do legibly at column width.
+    tags = [v.splitlines()[0] for v in versions]
+    fig, axs = plt.subplots(1, 3, figsize=(231.75 / 72.27, 1.75), layout="constrained")
     colors = ["lightgray", "#d62728", "#d62728", "#2ca02c"]
 
+    def bars_with_labels(ax, values, labels, title, log, ylim, offset):
+        bars = ax.bar(range(4), values, width=0.72, color=colors,
+                      edgecolor="black", lw=0.5)
+        ax.set_xticks(range(4))
+        ax.set_xticklabels(tags)
+        ax.tick_params(axis="both", length=2, pad=1.5)
+        if log:
+            ax.set_yscale("log")
+        ax.set_ylim(*ylim)
+        ax.set_title(title, pad=3)
+        for b, v, lab in zip(bars, values, labels):
+            y = v * offset if log else v + offset
+            ax.text(b.get_x() + b.get_width() / 2, y, lab,
+                    ha="center", va="bottom", fontsize=6.5)
+        if log:
+            ax.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:g}"))
+            ax.yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+        return bars
+
     # Panel (a): success rate
-    bars = axs[0].bar(range(4), success_pct, color=colors, edgecolor="black", lw=0.6)
-    axs[0].set_xticks(range(4))
-    axs[0].set_xticklabels(versions, fontsize=7)
-    axs[0].set_ylabel("Success rate [%]")
-    axs[0].set_ylim(0, 120)
-    axs[0].set_title("(a) Success rate at central cell")
-    for b, v in zip(bars, success_pct):
-        axs[0].text(b.get_x() + b.get_width()/2, v + 3, f"{v}%",
-                    ha="center", va="bottom", fontsize=9, weight="bold")
+    bars_with_labels(axs[0], success_pct, [f"{v}" for v in success_pct],
+                     "(a) Success (%)", log=False, ylim=(0, 118), offset=2)
 
     # Panel (b): p95 pos error (log scale)
-    bars = axs[1].bar(range(4), p95_err, color=colors, edgecolor="black", lw=0.6)
-    axs[1].set_xticks(range(4))
-    axs[1].set_xticklabels(versions, fontsize=7)
-    axs[1].set_ylabel("p95 terminal pos error [mm]")
-    axs[1].set_yscale("log")
-    axs[1].set_ylim(0.1, 5000)
-    axs[1].axhline(300, color="green", linestyle="--", lw=0.8, alpha=0.7,
-                   label="CANADARM2 envelope (300 mm)")
-    axs[1].set_title("(b) Terminal position error")
-    axs[1].legend(loc="upper right", fontsize=7)
-    for b, v in zip(bars, p95_err):
-        label = f"{v:.1f}" if v < 10 else f"{v:.0f}"
-        axs[1].text(b.get_x() + b.get_width()/2, v * 1.4, f"{label} mm",
-                    ha="center", va="bottom", fontsize=8)
+    # Neutral colour: green is already the v3 bar.
+    axs[1].axhline(300, color="0.25", linestyle="--", lw=0.8, zorder=0.5)
+    axs[1].text(3.45, 300 * 1.2, "300", ha="right", va="bottom", fontsize=6.5, color="0.25")
+    bars_with_labels(axs[1], p95_err,
+                     [f"{v:.1f}" if v < 10 else f"{v:.0f}" for v in p95_err],
+                     "(b) p95 error (mm)", log=True, ylim=(0.1, 5000), offset=1.25)
 
     # Panel (c): mean total dv (log scale)
-    bars = axs[2].bar(range(4), mean_dv, color=colors, edgecolor="black", lw=0.6)
-    axs[2].set_xticks(range(4))
-    axs[2].set_xticklabels(versions, fontsize=7)
-    axs[2].set_ylabel("Mean terminal $\\Delta v$ [mm/s]")
-    axs[2].set_yscale("log")
-    axs[2].set_ylim(0.5, 2000)
-    axs[2].set_title("(c) Propellant cost")
-    for b, v in zip(bars, mean_dv):
-        axs[2].text(b.get_x() + b.get_width()/2, v * 1.4, f"{v:.0f}",
-                    ha="center", va="bottom", fontsize=8)
+    # Linear axis: on a log axis the 434 -> 516 mm/s step (the propellant price of
+    # the soft formulation discussed in Section 5.4) was visually flat.
+    bars_with_labels(axs[2], mean_dv, [f"{v:.0f}" for v in mean_dv],
+                     "(c) Mean $\\Delta v$ (mm/s)", log=False, ylim=(0, 640), offset=8)
 
-    fig.tight_layout()
-    fig.savefig(OUT / "fig09_cascade.png")
+    for ext in ("pdf", "png"):
+        fig.savefig(OUT / f"fig09_cascade.{ext}")
     plt.close(fig)
-    print(f"  saved {OUT / 'fig09_cascade.png'}")
+    print(f"  saved {OUT / 'fig09_cascade.pdf'} (+ .png)")
 
 
 if __name__ == "__main__":

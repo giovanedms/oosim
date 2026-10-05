@@ -71,31 +71,52 @@ def fig_architecture():
 
 
 def fig_vbar_corridor():
-    """Figure 2: V-bar corridor with three approach trajectories."""
-    fig, axs = plt.subplots(1, 2, figsize=(7.5, 3.0))
+    """Figure 2: V-bar corridor with three approach trajectories.
+
+    Drawn at the exact single-column print width (\\columnwidth = 231.75 pt) and
+    included at scale 1.0, so tick labels print at 7 pt; the two views are
+    stacked on a shared along-track axis instead of squeezed side by side.
+    """
+    with plt.rc_context(PRINT_STYLE):
+        _fig_vbar_corridor()
+
+
+# Print-size style for figures included at scale 1.0 in the IAC layout.
+PRINT_STYLE = {
+    "font.serif": ["STIX Two Text", "STIXGeneral", "Times New Roman", "DejaVu Serif"],
+    "mathtext.fontset": "stix", "font.size": 8, "axes.labelsize": 8,
+    "xtick.labelsize": 7, "ytick.labelsize": 7, "legend.fontsize": 7,
+    "pdf.fonttype": 42, "savefig.dpi": 600, "savefig.bbox": "standard",
+}
+
+
+def _fig_vbar_corridor():
+    fig, axs = plt.subplots(2, 1, figsize=(231.75 / 72.27, 2.25), sharex=True,
+                            layout="constrained")
 
     # Top-down view: along-track (x_axis) vs lateral (y_axis_lvlh = LVLH y / V-bar perpendicular)
     x_at = np.linspace(0, 200, 400)  # along-track distance to target [m]
-    yb, _ = zip(*[vbar_corridor_bounds(xi) for xi in x_at])
-    yb = np.array(yb)
+    xb, zb = (np.array(b) for b in zip(*[vbar_corridor_bounds(xi) for xi in x_at]))
 
-    for ax, label, ylab in [(axs[0], "Lateral / radial deviation [m]", "x_LVLH (R-bar) [m]"),
-                              (axs[1], "Cross-track deviation [m]", "z_LVLH [m]")]:
-        ax.fill_between(x_at, -yb, yb, color="lightgray", alpha=0.6,
-                        label="V-bar corridor")
+    # vbar_corridor_bounds returns (|x| radial, |z| cross-track): each panel gets its own bound.
+    for ax, tag, label, bound in [(axs[0], "(a)", "Radial $x$ (m)", xb),
+                                  (axs[1], "(b)", "Cross-track $z$ (m)", zb)]:
+        ax.fill_between(x_at, -bound, bound, color="0.86", lw=0, label="V-bar corridor")
         ax.plot([0, 200], [0, 0], "k-", lw=0.5)
-        ax.set_xlabel("along-track distance to target [m]")
         ax.set_ylabel(label)
         ax.set_xlim(0, 200); ax.set_ylim(-30, 30)
-        ax.invert_xaxis()
-        ax.legend(loc="upper right", fontsize=8)
+        ax.set_yticks([-20, 0, 20])
+        ax.text(0.015, 0.93, tag, transform=ax.transAxes, ha="left", va="top",
+                weight="bold")
+    axs[0].invert_xaxis()  # shared axis: inverting once flips both panels
+    axs[1].set_xlabel("Along-track distance to target (m)")
 
     # Synthetic trajectories on the lateral plot
     n = mean_motion(6378.137 + 408.0)
     for init_state, color, lab in [
-        (np.array([3., -200., 0., 0., 0., 0.]), "tab:blue", "34-orbit profile"),
-        (np.array([5., -200., 1., 0., 0., 0.]), "tab:orange", "4-orbit profile"),
-        (np.array([2., -200., -1., 0., 0., 0.]), "tab:green", "2-orbit profile"),
+        (np.array([3., -200., 0., 0., 0., 0.]), "tab:blue", "34-orbit"),
+        (np.array([5., -200., 1., 0., 0., 0.]), "tab:orange", "4-orbit"),
+        (np.array([2., -200., -1., 0., 0., 0.]), "tab:green", "2-orbit (MS-17)"),
     ]:
         result = qp_terminal_target(
             initial_state=init_state, target_pos=np.array([0., 0., 0.]),
@@ -107,12 +128,14 @@ def fig_vbar_corridor():
             axs[0].plot(-result.states[:, 1], result.states[:, 0], color=color,
                         lw=1.0, label=lab)
             axs[1].plot(-result.states[:, 1], result.states[:, 2], color=color, lw=1.0)
-    axs[0].legend(loc="upper right", fontsize=7)
+    axs[0].legend(loc="upper right", ncol=2, frameon=True, framealpha=0.95,
+                  edgecolor="0.7", handlelength=1.4, columnspacing=0.9,
+                  borderpad=0.3, labelspacing=0.25)
 
-    fig.tight_layout()
-    fig.savefig(OUT / "fig02_vbar_corridor.png")
+    for ext in ("pdf", "png"):
+        fig.savefig(OUT / f"fig02_vbar_corridor.{ext}")
     plt.close(fig)
-    print(f"  saved {OUT / 'fig02_vbar_corridor.png'}")
+    print(f"  saved {OUT / 'fig02_vbar_corridor.pdf'} (+ .png)")
 
 
 def fig_capture_envelope():
