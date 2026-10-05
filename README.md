@@ -2,6 +2,12 @@
 
 End-to-end Python framework for simulating rendezvous and robotic berthing for on-orbit servicing missions, with QP-based berthing-compatible terminal targeting (soft-cost formulation, MPC + UKF) and validation against operational mission data.
 
+> **Authorship.** OOSim is authored by Giovane de Morais (ITA). The scientific content,
+> the technical decisions and the choice of what to model, test and report are his. The code
+> was written with LLM assistance under his direction, which is why every commit carries an
+> AI `Co-Authored-By` trailer; Section 8 of the companion IAC 2026 paper declares the same
+> thing, and this history is here so that declaration can be checked.
+
 **Companion code for:**
 - IAC 2026 paper `IAC-26,C2,3,6,x112752` — *Computational Simulation of Rendezvous and Robotic Berthing for On-Orbit Servicing: Validation Against Operational Mission Data*
 - RPOD-50 Dataset — see `../dataset/`
